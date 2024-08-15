@@ -10,10 +10,7 @@ NumLeds=100
 
 
 
-def lightOneLed(ledIndex:int):
-    # 将一个灯珠的亮度设置为最大值255
-    data = {"seg": [{"start": 0, "stop": NumLeds, "bri": 0}, {"start": ledIndex, "stop": ledIndex+1, "bri": 255}]}
-    return json.dumps(data)
+
     
 def lightOneLedWithTail(ledIndex,tailLength:int):
     # 将一个灯珠的亮度设置为最大值255，附带拖尾效果
@@ -30,12 +27,17 @@ def lightOneLedWithTail(ledIndex,tailLength:int):
 
 # 首先让所有灯按暗掉
 # 初始化所有的灯珠亮度为0
-data = {"seg": []}
+data = {"seg": [{"bri": 0}]*4}
 requests.post(url, headers=headers, data=json.dumps(data), timeout=1)
 
 # 1. 一个灯珠从最开始移动到第10位，模拟烟花飞上天空，移动速度0.1s/led
 上升高度=10
 if True:
+    
+    def lightOneLed(ledIndex:int):
+        # 将一个灯珠的亮度设置为最大值255
+        data = {"seg": [{"id": 0,"start": 0, "stop": NumLeds, "bri": 0}, {"id": 1,"start": ledIndex, "stop": ledIndex+1, "bri": 255}]}
+        return json.dumps(data)
     for i in range(上升高度+1):
         
         # 发送POST请求更新灯带状态
@@ -49,6 +51,10 @@ if True:
         
         # 控制速度：暂停0.1秒
         time.sleep(0.1)
+
+# 初始化所有的灯珠亮度为0
+data = {"seg": [{"id": 1, "bri": 0}]}
+requests.post(url, headers=headers, data=json.dumps(data), timeout=1)
 
 # 2. 3个5灯珠灯带，模拟烟花炸开效果
 # 定义烟花炸开的位置

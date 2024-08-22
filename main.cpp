@@ -18,10 +18,10 @@ const char *serverName = "http://192.168.31.242/json/state";
 
 int NumLeds = 100;
 int liftHeight = 60;
-int BanNum = 3;         // 瓣数量
-int BanLength = 10;     // 瓣长度
-int TailLength = 3;     // 拖尾长度
-int NumFiber = 10;      // 光纤数量
+int BanNum = 3;     // 瓣数量
+int BanLength = 10; // 瓣长度
+int TailLength = 3; // 拖尾长度
+int NumFiber = 10;  // 光纤数量
 
 unsigned long startTime = 0;
 bool energyAccumulationStarted = false;
@@ -179,13 +179,12 @@ void loop()
     // 手腕抖动<2000
     // 疯狂抖<4000
     float speedRadio = 1.0; // 速度系数
-    speedRadio=map(accumulatedEnergy,0,4000,0,10);
-    speedRadio=10-speedRadio;
-    speedRadio*=0.1;
-    
+    speedRadio = map(accumulatedEnergy, 0, 4000, 0, 10);
+    speedRadio = 10 - speedRadio;
+    speedRadio *= 0.1;
+
     Serial.println("=============speedRadio===============");
     Serial.println(speedRadio);
-
 
     // 1. 一个灯珠从最开始移动到第10位，模拟烟花飞上天空，移动速度0.1s/led
     // for (int i = 0; i <= liftHeight; i++)
@@ -193,16 +192,22 @@ void loop()
     {
       String payload = "{\"seg\":[{\"id\":0,\"start\":0,\"stop\":" + String(NumLeds) + ",\"bri\":0},{\"id\":1,\"start\":" + String(i) + ",\"stop\":" + String(i + 1) + ",\"bri\":255,\"n\":\"1-lift\"}]}";
       sendPostRequest(payload);
-      delay(30*speedRadio);
+      delay(30 * speedRadio);
     }
     delay(100);
     // 2. 3个5灯珠灯带，模拟烟花炸开效果
     int fireworkStart = liftHeight + 1;
     // 2.5 同时，点亮光纤(假设有5条)
     int guangqianStart = fireworkStart + BanLength * BanNum;
-
-    String payload = "{\"seg\":[{\"id\":4,\"bri\":255,\"start\":" + String(guangqianStart) + ",\"stop\":" + String(guangqianStart + NumFiber) + ",\"n\":\"guangqian\"}]}";
-    sendPostRequest(payload);
+    // 生成随机起始索引
+    int start_index = random(0, NumLeds);
+    // 计算最大长度
+    int max_length = NumLeds - start_index;
+    // 生成随机子长度
+    int sub_length = random(1, max_length + 1);
+    // 构建JSON数据
+    String data = "{\"seg\": [{\"id\": 4, \"bri\": 255, \"start\": " + String(guangqianStart + start_index) + ", \"len\": " + String(sub_length) + ", \"n\": \"guangqian\"}]}";
+    sendPostRequest(data);
 
     for (int bloomIndex = 0; bloomIndex < BanLength; bloomIndex++)
     {
@@ -216,7 +221,7 @@ void loop()
         payload = generatePayloadWithTail(fireworkStart, bloomIndex, TailLength);
       }
       sendPostRequest(payload);
-      delay(300*speedRadio);
+      delay(300 * speedRadio);
     }
 
     // 到头之后拖尾后处理
@@ -224,7 +229,7 @@ void loop()
     {
       String payload = generatePayloadWithTail(fireworkStart, BanLength - 1, tuo);
       sendPostRequest(payload);
-      delay(300*speedRadio);
+      delay(300 * speedRadio);
     }
     // 重置能量累积
     energyAccumulationStarted = false;

@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import random
 
 # 主控的URL和头信息
 url = "http://192.168.31.242/json/state"
@@ -12,10 +13,10 @@ NumLeds=100
 瓣数量=3
 瓣长度=10
 拖尾长度=2
-光纤数量=5
+光纤数量=10
 # 首先让所有灯按暗掉
 # 初始化所有的灯珠亮度为0
-data = {"seg": [{"bri": 0}]*4}
+data = {"seg": [{"bri": 0}]*20}
 requests.post(url, headers=headers, data=json.dumps(data), timeout=1)
 
 # 1. 一个灯珠从最开始移动到第10位，模拟烟花飞上天空，移动速度0.1s/led
@@ -37,7 +38,7 @@ for i in range(上升高度+1):
         print(f"Error on sending POST: {response.status_code}")
     
     # 控制速度：暂停0.1秒
-    time.sleep(0.03)
+    time.sleep(0.01)
 
 time.sleep(0.1)
 # 2. 3个5灯珠灯带，模拟烟花炸开效果
@@ -47,9 +48,14 @@ fireworkStart = 上升高度+1
 
 # 2.5 同时，点亮光纤(假设有5条)
 guangqianStart=fireworkStart+瓣长度*瓣数量
-data = {"seg": [{"id": 4, "bri": 255 ,"start": guangqianStart, "stop": guangqianStart+光纤数量,"n":"guangqian"}]}
+# 选择随机的起始索引
+start_index = random.randint(0, 光纤数量 - 1)
+# 选择随机的长度，确保它不会超过列表的剩余部分
+max_length = 光纤数量 - start_index
+sub_length = random.randint(1, max_length)
+data = {"seg": [{"id": 4, "bri": 255 ,"start": guangqianStart+start_index, "len":sub_length ,"n":"guangqian"}]}
+print(data)
 requests.post(url, headers=headers, data=json.dumps(data), timeout=1)
-
 def lightOneLedWithTail(ledIndex,tailLength:int):
     # 将一个灯珠的亮度设置为最大值255，附带拖尾效果
     # if type(ledIndex) is int:

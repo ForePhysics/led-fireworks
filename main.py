@@ -3,15 +3,15 @@ import json
 import time
 
 # 主控的URL和头信息
-url = "http://192.168.123.171/json/state"
+url = "http://192.168.31.242/json/state"
 headers = {"Content-Type": "application/json"}
 
 NumLeds=100
 
-上升高度=10
+上升高度=60
 瓣数量=3
-瓣长度=5
-拖尾长度=1
+瓣长度=10
+拖尾长度=2
 光纤数量=5
 # 首先让所有灯按暗掉
 # 初始化所有的灯珠亮度为0
@@ -24,10 +24,11 @@ def lightOneLed(ledIndex:int):
     # 将一个灯珠的亮度设置为最大值255
     data = {"seg": [{"id": 0,"start": 0, "stop": NumLeds, "bri": 0}, {"id": 1,"start": ledIndex, "stop": ledIndex+1, "bri": 255, "n":"1-lift"}]}
     return json.dumps(data)
+
 for i in range(上升高度+1):
     
     # 发送POST请求更新灯带状态
-    response = requests.post(url, headers=headers, data=lightOneLed(i), timeout=1)
+    response = requests.post(url, headers=headers, data=lightOneLed(上升高度-i), timeout=1)
     
     # 检查响应状态码
     if response.status_code == 200:
@@ -36,7 +37,7 @@ for i in range(上升高度+1):
         print(f"Error on sending POST: {response.status_code}")
     
     # 控制速度：暂停0.1秒
-    time.sleep(0.1)
+    time.sleep(0.03)
 
 time.sleep(0.1)
 # 2. 3个5灯珠灯带，模拟烟花炸开效果
